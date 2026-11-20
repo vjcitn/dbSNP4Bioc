@@ -228,3 +228,15 @@ pos_to_rsid <- function(db, chrom, pos, a1 = NULL, a2 = NULL,
   sql <- .sql_pos(.flist(db, "by_pos", chroms), match, unique(q$pos), in_list_max)
   .finish(DBI::dbGetQuery(db$con, sql))
 }
+
+.sql_range <- function(files, chrom, start, end, biallelic_only = FALSE)
+  sprintf(paste0("SELECT chrom, pos, rs, ref, alt, n_alt FROM read_parquet(%s) ",
+                 "WHERE chrom = %s AND pos BETWEEN %.0f AND %.0f%s ORDER BY pos, rs, alt"),
+          files, .q(chrom), start, end, if (biallelic_only) " AND n_alt = 1" else "")
+
+snps_in_range <- function(db, chrom, start, end, biallelic_only = FALSE) {
+  chrom <- .chrom_label(chrom)
+  stopifnot(length(chrom) == 1L, length(start) == 1L, length(end) == 1L, start <= end)
+  .finish(DBI::dbGetQuery(db$con,
+            .sql_range(.flist(db, "by_pos", chrom), chrom, start, end, biallelic_only)))
+}
