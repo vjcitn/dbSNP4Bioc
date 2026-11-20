@@ -1,6 +1,21 @@
+## PHASE 0 -- get dbSNP VCF
+
+#until curl -C - -L --fail --retry 50 --retry-delay 15 --retry-all-errors \
+#      --connect-timeout 30 --speed-limit 100000 --speed-time 60 \
+#      -O https://ftp.ncbi.nih.gov/snp/archive/b157/VCF/GCF_000001405.40.gz; do
+#  sleep 30
+#done
+
+#  then index using tabix
+
+#  you should have
+#-rw-rw-r-- 1 exouser exouser     3120044 Nov 20 18:45 GCF_000001405.40.gz.tbi
+#-rw-rw-r-- 1 exouser exouser 29552227779 Nov 20 18:21 GCF_000001405.40.gz
+# available at location given by env var DBSNP_VCF_PATH
 
 
-# to use: set DBSNP_VCF_PATH to location of gzipped VCF and .gz.tbi
+#
+# to run workflow: set DBSNP_VCF_PATH to location of gzipped VCF and .gz.tbi
 # set DBSNP_PARQ_PATH to folder where you want converted parquet to live
 
 
@@ -16,9 +31,6 @@ stopifnot(dir.exists(path_to_parq))
 dbsnp_chrom_to_parquet(path_to_vcf, chrom="17", outdir=path_to_parq, release="b157", build="GRCh38")
 
 # assuming
-#-rw-rw-r-- 1 exouser exouser     3120044 Nov 20 18:45 GCF_000001405.40.gz.tbi
-#-rw-rw-r-- 1 exouser exouser 29552227779 Nov 20 18:21 GCF_000001405.40.gz
-# are available at DBSNP_VCF_PATH
 
 # this call
 # dbsnp_chrom_to_parquet(path_to_vcf, chrom="17", outdir=path_to_parq, release="b157", build="GRCh38")
