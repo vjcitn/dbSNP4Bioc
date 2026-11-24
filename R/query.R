@@ -89,3 +89,37 @@ dbsnp_in_range <- function(chrom, start, end, biallelic_only = FALSE,
   if (biallelic_only) out <- dplyr::filter(out, .data$n_alt == 1L)
   dplyr::collect(dplyr::arrange(out, .data$pos, .data$rs, .data$alt))
 }
+
+.parse_rsid <- function(x) {
+  x <- sub("^rs", "", trimws(as.character(x)), ignore.case = TRUE)
+  suppressWarnings(as.numeric(ifelse(grepl("^[0-9]+$", x), x, NA)))   # double: rs ids can exceed 2^31
+}
+
+#' Look up one or more rsIDs across every cached chromosome
+#'
+#' A `dplyr`-based convenience wrapper over [dbsnp_tbl()]: searches the
+#' `by_rsid` table across *all* chromosomes currently cached for the given
+#' `release`/`build` (not just one), since an rsID does not tell you in
+#' advance which chromosome it lives on.
+#'
+#' @inheritParams dbsnp_tbl
+#' @param rsid One or more rsIDs, with or without the `"rs"` prefix (e.g.
+#'   `"rs1042522"` or `1042522`).
+#' @return A tibble with columns `chrom`, `pos`, `rs`, `ref`, `alt`, `n_alt`,
+#'   `RefSNP_id` (one row per matching dbSNP record; a multi-allelic rsID
+#'   returns one row per ALT allele). rsIDs with no match in the cache are
+#'   simply absent from the result.
+#' @importFrom rlang .data
+#' @export
+dbsnp_by_rsid <- function(rsid, release = "b157", build = "GRCh38", cache = dbsnp_cache()) {
+  qids <- unique(.parse_rsid(rsid))
+  qids <- qids[!is.na(qids)]
+  if (!length(qids)) stop("no valid rsIDs in 'rsid'", call. = FALSE)
+
+  tbl <- dbsnp_tbl("by_rsid", release = release, build = build, cache = cache)
+  on.exit(dbsnp_disconnect(tbl), add = TRUE)
+  out <- dplyr::collect(dplyr::arrange(dplyr::filter(tbl, .data$rs %in% !!qids),
+                                       .data$rs, .data$chrom, .data$pos))
+  out$RefSNP_id <- sprintf("rs%.0f", out$rs)
+  out
+}

@@ -52,6 +52,28 @@ test_that("building a second, different chromosome does not error on the shared 
   expect_true(all(file.exists(cached$path)))
 })
 
+test_that("dbsnp_by_rsid finds a SNP regardless of which cached chromosome it is on", {
+  tmp <- withr::local_tempdir()
+  vcf <- make_test_vcf_2chrom(tmp)
+  cache <- dbsnp_cache(withr::local_tempdir())
+
+  dbsnp_build_chrom("chr17", release = "b157", build = "GRCh38", vcf = vcf, cache = cache)
+  dbsnp_build_chrom("chr22", release = "b157", build = "GRCh38", vcf = vcf, cache = cache)
+
+  hit17 <- dbsnp_by_rsid("rs1", release = "b157", build = "GRCh38", cache = cache)
+  expect_equal(hit17$chrom, "17")
+  expect_equal(hit17$RefSNP_id, "rs1")
+
+  hit22 <- dbsnp_by_rsid(20, release = "b157", build = "GRCh38", cache = cache)
+  expect_equal(hit22$chrom, "22")
+
+  both <- dbsnp_by_rsid(c("rs1", "rs20"), release = "b157", build = "GRCh38", cache = cache)
+  expect_setequal(both$chrom, c("17", "22"))
+
+  none <- dbsnp_by_rsid("rs999999", release = "b157", build = "GRCh38", cache = cache)
+  expect_equal(nrow(none), 0L)
+})
+
 test_that("dbsnp_gcf_path validates the environment variable", {
   withr::local_envvar(DBSNP_GCF_PATH = "")
   expect_error(dbsnp_gcf_path(), "DBSNP_GCF_PATH is not set")

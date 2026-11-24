@@ -54,6 +54,14 @@ dbsnp_in_range("17", 38077296, 38083854, biallelic_only = TRUE,
                release = "b157", build = "GRCh38")
 ```
 
+To look up an rsID without knowing which chromosome it is on,
+`dbsnp_by_rsid()` searches every cached chromosome at once (`dbsnp_tbl()`
+with no `chrom` argument already unions all of them under the hood):
+
+```r
+dbsnp_by_rsid(c("rs1042522", "rs28934578"), release = "b157", build = "GRCh38")
+```
+
 ## Reference
 
 See `inst/scripts/` for the original standalone scripts this package was
