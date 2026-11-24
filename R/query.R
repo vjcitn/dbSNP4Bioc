@@ -22,7 +22,10 @@
 #'   defaults to opening a fresh in-process duckdb connection. Close it with
 #'   [dbsnp_disconnect()] when done (or let it be garbage-collected).
 #' @return A `tbl_duckdb_connection` / `tbl_sql` object: a lazy `dplyr`
-#'   table with columns `chrom`, `pos`, `rs`, `ref`, `alt`, `n_alt`.
+#'   table with columns `release`, `build`, `chrom`, `pos`, `rs`, `ref`,
+#'   `alt`, `n_alt`. `release`/`build` are constant (the arguments passed
+#'   in) but included so that results collected from different calls, or
+#'   stacked with `dplyr::bind_rows()`, still carry their dbSNP provenance.
 #'
 #' @examples
 #' \dontrun{
@@ -30,7 +33,7 @@
 #' chr17 <- dbsnp_tbl("by_pos", chrom = "17")
 #' chr17 |>
 #'   filter(pos >= 38077296, pos <= 38083854, n_alt == 1) |>
-#'   select(pos, rs, ref, alt) |>
+#'   select(release, build, pos, rs, ref, alt) |>
 #'   collect()
 #' dbsnp_disconnect(chr17)
 #' }
@@ -49,7 +52,8 @@ dbsnp_tbl <- function(table = c("by_pos", "by_rsid"), chrom = NULL,
 
   if (is.null(con)) con <- DBI::dbConnect(duckdb::duckdb())
   flist <- paste(vapply(files$path, .q, ""), collapse = ", ")
-  sql <- sprintf("SELECT * FROM read_parquet([%s])", flist)
+  sql <- sprintf("SELECT %s AS release, %s AS build, * FROM read_parquet([%s])",
+                 .q(release), .q(build), flist)
   dplyr::tbl(con, dplyr::sql(sql))
 }
 
@@ -75,7 +79,8 @@ dbsnp_disconnect <- function(tbl) {
 #' @param start,end 1-based inclusive position range.
 #' @param biallelic_only If `TRUE`, keep only records with a single ALT
 #'   allele (`n_alt == 1`).
-#' @return A tibble with columns `chrom`, `pos`, `rs`, `ref`, `alt`, `n_alt`.
+#' @return A tibble with columns `release`, `build`, `chrom`, `pos`, `rs`,
+#'   `ref`, `alt`, `n_alt`.
 #' @importFrom rlang .data
 #' @export
 dbsnp_in_range <- function(chrom, start, end, biallelic_only = FALSE,
@@ -105,10 +110,10 @@ dbsnp_in_range <- function(chrom, start, end, biallelic_only = FALSE,
 #' @inheritParams dbsnp_tbl
 #' @param rsid One or more rsIDs, with or without the `"rs"` prefix (e.g.
 #'   `"rs1042522"` or `1042522`).
-#' @return A tibble with columns `chrom`, `pos`, `rs`, `ref`, `alt`, `n_alt`,
-#'   `RefSNP_id` (one row per matching dbSNP record; a multi-allelic rsID
-#'   returns one row per ALT allele). rsIDs with no match in the cache are
-#'   simply absent from the result.
+#' @return A tibble with columns `release`, `build`, `chrom`, `pos`, `rs`,
+#'   `ref`, `alt`, `n_alt`, `RefSNP_id` (one row per matching dbSNP record; a
+#'   multi-allelic rsID returns one row per ALT allele). rsIDs with no match
+#'   in the cache are simply absent from the result.
 #' @importFrom rlang .data
 #' @export
 dbsnp_by_rsid <- function(rsid, release = "b157", build = "GRCh38", cache = dbsnp_cache()) {

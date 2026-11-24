@@ -41,11 +41,15 @@ chr17 <- dbsnp_tbl("by_pos", chrom = "17", release = "b157", build = "GRCh38")
 
 chr17 |>
   filter(pos >= 38077296, pos <= 38083854, n_alt == 1) |>
-  select(pos, rs, ref, alt) |>
+  select(release, build, pos, rs, ref, alt) |>
   collect()
 
 dbsnp_disconnect(chr17)
 ```
+
+Every result (from `dbsnp_tbl()`, `dbsnp_in_range()`, and `dbsnp_by_rsid()`)
+carries `release` and `build` columns, so a result on its own always says
+which dbSNP release and genome build it came from.
 
 A convenience wrapper is also provided for position-range lookups:
 

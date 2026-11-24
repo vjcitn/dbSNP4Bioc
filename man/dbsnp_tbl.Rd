@@ -35,7 +35,10 @@ defaults to opening a fresh in-process duckdb connection. Close it with
 }
 \value{
 A \code{tbl_duckdb_connection} / \code{tbl_sql} object: a lazy \code{dplyr}
-table with columns \code{chrom}, \code{pos}, \code{rs}, \code{ref}, \code{alt}, \code{n_alt}.
+table with columns \code{release}, \code{build}, \code{chrom}, \code{pos}, \code{rs}, \code{ref},
+\code{alt}, \code{n_alt}. \code{release}/\code{build} are constant (the arguments passed
+in) but included so that results collected from different calls, or
+stacked with \code{dplyr::bind_rows()}, still carry their dbSNP provenance.
 }
 \description{
 Returns a lazy \code{dplyr}/\code{dbplyr} table backed by a \code{duckdb} connection
@@ -52,7 +55,7 @@ library(dplyr)
 chr17 <- dbsnp_tbl("by_pos", chrom = "17")
 chr17 |>
   filter(pos >= 38077296, pos <= 38083854, n_alt == 1) |>
-  select(pos, rs, ref, alt) |>
+  select(release, build, pos, rs, ref, alt) |>
   collect()
 dbsnp_disconnect(chr17)
 }

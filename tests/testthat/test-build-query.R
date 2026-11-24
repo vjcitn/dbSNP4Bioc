@@ -23,9 +23,12 @@ test_that("build, cache, and tidyverse query round-trip", {
   expect_setequal(by_pos$rs, c(1, 2, 2, 5))
   expect_false(3 %in% by_pos$rs)
   expect_false(4 %in% by_pos$rs)
+  expect_true(all(by_pos$release == "test"))
+  expect_true(all(by_pos$build == "GRCh38"))
 
   rng <- dbsnp_in_range("17", 1, 250, release = "test", build = "GRCh38", cache = cache)
   expect_equal(sort(rng$pos), c(100, 200, 200))
+  expect_true(all(rng$release == "test" & rng$build == "GRCh38"))
 
   rng_bi <- dbsnp_in_range("17", 1, 1000, biallelic_only = TRUE,
                            release = "test", build = "GRCh38", cache = cache)
@@ -69,6 +72,7 @@ test_that("dbsnp_by_rsid finds a SNP regardless of which cached chromosome it is
 
   both <- dbsnp_by_rsid(c("rs1", "rs20"), release = "b157", build = "GRCh38", cache = cache)
   expect_setequal(both$chrom, c("17", "22"))
+  expect_true(all(both$release == "b157" & both$build == "GRCh38"))
 
   none <- dbsnp_by_rsid("rs999999", release = "b157", build = "GRCh38", cache = cache)
   expect_equal(nrow(none), 0L)

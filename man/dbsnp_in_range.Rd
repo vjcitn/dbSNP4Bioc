@@ -30,7 +30,8 @@ allele (\code{n_alt == 1}).}
 \code{\link[=dbsnp_cache]{dbsnp_cache()}}.}
 }
 \value{
-A tibble with columns \code{chrom}, \code{pos}, \code{rs}, \code{ref}, \code{alt}, \code{n_alt}.
+A tibble with columns \code{release}, \code{build}, \code{chrom}, \code{pos}, \code{rs},
+\code{ref}, \code{alt}, \code{n_alt}.
 }
 \description{
 A \code{dplyr}-based convenience wrapper over \code{\link[=dbsnp_tbl]{dbsnp_tbl()}}: filters the

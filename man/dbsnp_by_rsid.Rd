@@ -18,10 +18,10 @@ dbsnp_by_rsid(rsid, release = "b157", build = "GRCh38", cache = dbsnp_cache())
 \code{\link[=dbsnp_cache]{dbsnp_cache()}}.}
 }
 \value{
-A tibble with columns \code{chrom}, \code{pos}, \code{rs}, \code{ref}, \code{alt}, \code{n_alt},
-\code{RefSNP_id} (one row per matching dbSNP record; a multi-allelic rsID
-returns one row per ALT allele). rsIDs with no match in the cache are
-simply absent from the result.
+A tibble with columns \code{release}, \code{build}, \code{chrom}, \code{pos}, \code{rs},
+\code{ref}, \code{alt}, \code{n_alt}, \code{RefSNP_id} (one row per matching dbSNP record; a
+multi-allelic rsID returns one row per ALT allele). rsIDs with no match
+in the cache are simply absent from the result.
 }
 \description{
 A \code{dplyr}-based convenience wrapper over \code{\link[=dbsnp_tbl]{dbsnp_tbl()}}: searches the

@@ -1,6 +1,6 @@
 Package: dbSNP4Bioc
 Title: Build, Cache and Query dbSNP VCF Data as Parquet
-Version: 0.2.0
+Version: 0.2.1
 Authors@R: person("Vince", "Carey", email = "stvjc@channing.harvard.edu",
     role = c("aut", "cre"))
 Description: Converts a single chromosome of an NCBI dbSNP VCF (as
