@@ -29,11 +29,17 @@
 }
 
 ## add (or, if rname already present, overwrite in place) a local file; returns cached path
+##
+## bfcupdate()'s fpath argument re-points a *web*-type resource at a new URL
+## and re-downloads it; it errors on our rtype = "local" entries ("resource
+## rtype is not 'web'"). To refresh a local-copy resource's content we just
+## overwrite the file already living in the cache directory.
 .bfc_put <- function(cache, rname, path) {
   rid <- .bfc_find(cache, rname)
   if (is.na(rid))
     return(unname(BiocFileCache::bfcadd(cache, rname = rname, fpath = path,
                                         rtype = "local", action = "copy")))
-  BiocFileCache::bfcupdate(cache, rid, fpath = path, ask = FALSE)
-  unname(BiocFileCache::bfcpath(cache, rid))
+  dest <- unname(BiocFileCache::bfcpath(cache, rid))
+  file.copy(path, dest, overwrite = TRUE)
+  dest
 }

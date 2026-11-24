@@ -33,6 +33,25 @@ test_that("build, cache, and tidyverse query round-trip", {
   expect_setequal(rng_bi$pos, c(100, 500))
 })
 
+test_that("building a second, different chromosome does not error on the shared manifest", {
+  ## Regression test: the second dbsnp_build_chrom() call for a given
+  ## release/build reuses (overwrites in place) the cached manifest.json
+  ## entry. bfcupdate(fpath = ...) errors on rtype = "local" resources
+  ## ("resource rtype is not 'web'"); .bfc_put() must use file.copy() instead.
+  tmp <- withr::local_tempdir()
+  vcf <- make_test_vcf_2chrom(tmp)
+  cache <- dbsnp_cache(withr::local_tempdir())
+
+  dbsnp_build_chrom("chr17", release = "b157", build = "GRCh38", vcf = vcf, cache = cache)
+  expect_no_error(
+    dbsnp_build_chrom("chr22", release = "b157", build = "GRCh38", vcf = vcf, cache = cache)
+  )
+
+  cached <- dbsnp_cached("b157", "GRCh38", cache)
+  expect_setequal(cached$chrom, c("17", "22"))
+  expect_true(all(file.exists(cached$path)))
+})
+
 test_that("dbsnp_gcf_path validates the environment variable", {
   withr::local_envvar(DBSNP_GCF_PATH = "")
   expect_error(dbsnp_gcf_path(), "DBSNP_GCF_PATH is not set")
